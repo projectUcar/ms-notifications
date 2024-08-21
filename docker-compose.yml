@@ -1,0 +1,21 @@
+version: "3.3"
+
+services:
+  ms_vehicles-tes: 
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ms_notifications-test
+    env_file:
+      - ./variables.env
+    ports:
+      - "6000:6000"
+      - "5671:5671"
+    command: npm start
+    networks:
+      - ucar-network
+
+networks:
+  ucar-network:
+    external: true
+ 
