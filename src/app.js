@@ -5,6 +5,7 @@ import helmet from "helmet";
 import './libs/firebase';
 import { connectRabbitMQ, getChannel } from './libs/rabbitmq';
 import { getUserById } from './libs/userService';
+import { getRouteById } from './libs/routesService';
 import admin from './libs/firebase';
 import { QUEUE } from './config';
 
@@ -28,22 +29,46 @@ connectRabbitMQ((channel) => {
   
     channel.consume(QUEUE, async (msg) => {
       if (msg !== null) {
-        const { idRoute, idUser, idDriver, token, message } = JSON.parse(msg.content.toString());
+        const { idRoute, idUser, idDriver, token, information } = JSON.parse(msg.content.toString());
   
         try {
           const driver = await getUserById(idDriver, token);
+          const passenger = await getUserById(idUser, token);
+          const routeResponse = await getRouteById(idRoute, token);
 
-          console.log(idRoute, idUser, idDriver, message);
+          console.log("---","idRoute", "idUser", "idDriver", "information");
+          console.log("---",idRoute, idUser, idDriver, information);
+          
+          console.log("Nombre conductor: ", driver.user.firstName + ' ' + driver.user.lastName)
+
+          
+          const namePassenger = passenger.firstName.split(" ")[0] + ' ' + passenger.lastName.split(" ")[0]
+          
+          console.log("Nombre pasajero: ", namePassenger);
+
+          const dateOptions = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          };
+
+          const destination = routeResponse.destination;
+          const dateFormatted = new Date(routeResponse.departureDate).toLocaleDateString('es-CO', dateOptions);
+          const departureTime = routeResponse.departureTime;
+
+         // console.log("RUTA: ", routeResponse);
   
-          if (driver && driver.deviceToken) {
-            const message = {
-              notification: {
-                title: 'Nueva solicitud de cupo',
-                body: `El usuario con ID ${idUser} ha solicitado un cupo en tu ruta.`,
-              },
-              token: driver.deviceToken,
-            };
-  
+          //TODO: deviceToken exists
+          //if (driver && driver.deviceToken) {};
+          
+          const message = {
+            notification: {
+              title: '¡Nueva solicitud de cupo!',
+              body: `¡Felicidades! ${namePassenger} ha solicitado un cupo en tu ruta para ${destination}. el día ${dateFormatted} a las ${departureTime}`,
+            },
+            token: "TOKEN",
+          }
             console.log(message);
             // TODO: send a notification
             // admin.messaging().send(message)
@@ -53,7 +78,7 @@ connectRabbitMQ((channel) => {
             //   .catch((error) => {
             //     console.error('Error al enviar notificación:', error);
             //   });
-          }
+
         } catch (error) {
           console.error('Error al obtener datos del conductor:', error);
         }
