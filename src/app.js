@@ -67,17 +67,17 @@ connectRabbitMQ((channel) => {
               title: '¡Nueva solicitud de cupo!',
               body: `¡Felicidades! ${namePassenger} ha solicitado un cupo en tu ruta para ${destination}. el día ${dateFormatted} a las ${departureTime}`,
             },
-            token: "TOKEN",
+            token: driver.tokenDevice,
           }
             console.log(message);
             // TODO: send a notification
-            // admin.messaging().send(message)
-            //   .then((response) => {
-            //     console.log('Notificación enviada exitosamente:', response);
-            //   })
-            //   .catch((error) => {
-            //     console.error('Error al enviar notificación:', error);
-            //   });
+            admin.messaging().send(message)
+              .then((response) => {
+                console.log('Notificación enviada exitosamente:', response);
+              })
+              .catch((error) => {
+                console.error('Error al enviar notificación:', error);
+              });
 
         } catch (error) {
           console.error('Error al obtener datos del conductor:', error);
